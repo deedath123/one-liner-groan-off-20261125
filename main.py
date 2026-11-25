@@ -21,8 +21,29 @@ def validate(entry):
     return True
 
 
+def confirm_entry_is_tight(entry):
+    """Reject entries with stray whitespace or invisible characters:
+    leading/trailing whitespace, any newline or carriage return, any
+    character whose Unicode category starts with 'C', or any run of
+    two or more consecutive whitespace characters."""
+    import re
+    import unicodedata
+
+    if entry != entry.strip():
+        raise ValueError("entry must not have leading or trailing whitespace")
+    if "\n" in entry or "\r" in entry:
+        raise ValueError("entry must not contain newline or carriage return")
+    for ch in entry:
+        if unicodedata.category(ch).startswith("C"):
+            raise ValueError("entry must not contain control, format, surrogate, or private-use characters")
+    if re.search(r"\s{2,}", entry):
+        raise ValueError("entry must not contain consecutive whitespace")
+    return True
+
+
 def main():
     validate(ENTRY)
+    confirm_entry_is_tight(ENTRY)
     import os
 
     os.makedirs("/output", exist_ok=True)
